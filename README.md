@@ -292,14 +292,13 @@ graph LR
 
 ---
 
-## 📦 技能模块一览
+## 📦 项目结构
 
 ```
-xiaohongshu-skills/
+xhs-agent/
 ├── skills/
 │   ├── xhs-publish/          # ⭐ 发布辅助（人工确认）
-│   ├── xhs-explore/          # 🔍 热点发现与搜索
-│   └── README.md             # 模块文档
+│   └── xhs-explore/          # 🔍 热点发现与搜索
 ├── scripts/
 │   ├── publish_pipeline.py   # 发布流水线
 │   ├── obsidian_bridge.py    # Obsidian 桥接
@@ -344,6 +343,24 @@ xiaohongshu-skills/
 - 不发布违规内容
 - 自行承担账号使用风险
 - **发布行为始终由人工确认和执行**
+
+---
+
+## 🙏 致谢
+
+本项目基于 [xpzouying/xiaohongshu-skills](https://github.com/xpzouying/xiaohongshu-skills) 进行**二次迭代开发**。
+
+上游项目提供了完整的 CDP 引擎和基础架构。我们在其基础上做了以下改进：
+
+| 维度 | 上游版本 | XHS-Agent（本版本） |
+|------|----------|---------------------|
+| **定位** | 自动化工具集 | AI 提效 + 内容管理工具箱 |
+| **文档** | 开发者调试日志 | 用户友好的使用指南 |
+| **发布模式** | 一步到位 | 预览 → 审核 → 发布（推荐） |
+| **工作流集成** | 独立脚本 | Obsidian 原生 + AI Agent 协作 |
+| **安全定位** | 全自动操作 | 人工决策注入思想 |
+
+> 感谢 xpzouying 的开源贡献 🎉
 
 ---
 

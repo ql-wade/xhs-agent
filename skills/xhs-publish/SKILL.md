@@ -2,17 +2,7 @@
 name: xhs-publish
 description: |
   小红书内容发布技能。支持图文/视频/长文发布、内容预览、标签管理。
-  适用于：AI Agent（Claude Code/Codex/Hermes）辅助小红书内容创作与发布。
 version: 1.0.0
-metadata:
-  openclaw:
-    requires:
-      bins:
-        - python3
-    emoji: "📝"
-    os:
-      - darwin
-      - linux
 ---
 
 # XHS-Publish — 小红书智能发布
@@ -194,29 +184,14 @@ python3 scripts/cli.py save-draft
 
 ## 与 AI Agent 配合使用
 
-### Claude Code
+### Claude Code / Codex / Hermes
 
-```bash
-# 在 Claude Code 中调用
-/subagent "帮我写一篇关于XX的小红书文案，然后用xhs-publish发布"
-```
+Agent 会自动识别「发小红书」「发布到小红书」等意图，触发完整流程：
 
-Agent 会自动：
 1. 生成符合规范的标题 + 正文
 2. 调用 Codex/DALL-E 生成配图
 3. 执行 publish_pipeline.py 发布
 4. 向你汇报结果
-
-### Codex
-
-```bash
-cd your-project
-codex exec "用 xhs-publish 技能发一篇小红书笔记，主题是：AI编程提效"
-```
-
-### Hermes Agent
-
-技能加载后会自动识别「发小红书」「发布到小红书」等意图，触发完整发布流程。
 
 ### Obsidian 工作流
 
@@ -248,84 +223,15 @@ wc -m content.txt   # 必须 ≤ 1000
 
 ### Q: 图片上传失败？
 
-A: 检查：
-- 文件路径是否正确（必须绝对路径）
-- 图片格式是否支持（jpg/png/webp）
-- 单张大小是否超 10MB
-- 网络是否通畅（CDP 通过本地 Chrome 发请求）
+A: 检查文件路径是否正确（必须绝对路径）、格式是否支持、大小是否超 10MB。
 
 ### Q: 标签没有生效？
 
-A: 不需要 `--tags` 参数。把标签写在正文最后一行：
-```
-正文内容...
-
-#标签1 #标签2 #标签3
-```
-脚本会自动从末尾提取。
-
-### Q: 如何定时发布？
-
-A: 使用 `--schedule-at` 参数（ISO 8601 格式）：
-```bash
---schedule-at "2026-05-10T20:00:00"
-```
-注意：定时需要保持 Chrome 运行和登录状态。
+A: 不需要 `--tags` 参数。把标签写在正文最后一行，脚本自动从末尾提取。
 
 ### Q: 支持多账号吗？
 
-A: 支持。每个账号用不同的 Chrome user-data-dir：
-```bash
---user-data-dir="/path/to/profile-2"
-```
-或者启动多个 Chrome 实例用不同端口。
-
-### Q: Bridge 扩展是什么？必须装吗？
-
-A: Bridge 扩展是可选增强功能（本项目 `extension/` 目录）。它能让 CLI 和浏览器通信更稳定。但如果你的 Chrome 无法加载扩展，**纯 CDP 模式也能正常工作**——这就是 `publish_pipeline.py` 的默认模式。
-
----
-
-## 项目结构
-
-```
-xhs-agent/
-├── README.md                    # 项目介绍与营销文档
-├── SKILL.md                     # 本文件（使用指南）
-├── LICENSE                      # MIT 开源协议
-├── requirements.txt             # Python 依赖
-├── pyproject.toml               # 项目配置
-│
-├── scripts/                     # 🔧 核心引擎
-│   ├── publish_pipeline.py      # 主入口：一键发布流水线
-│   ├── cdp_publish.py           # CDP 协议层（操控浏览器）
-│   ├── cli.py                   # CLI 子命令（fill/click/save）
-│   ├── chrome_launcher.py       # Chrome 生命周期管理
-│   └── xhs/                     # 业务模块
-│       ├── publish.py            # 图文发布逻辑
-│       ├── publish_video.py      # 视频发布逻辑
-│       ├── publish_long_article.py # 长文发布逻辑
-│       ├── login.py              # 登录（二维码）
-│       ├── search.py             # 搜索发现
-│       ├── feeds.py              # 信息流
-│       ├── cdp.py                # CDP 底层封装
-│       └── selectors.py          # 页面选择器定义
-│
-├── skills/
-│   ├── xhs-publish/             # 📝 发布技能（本技能）
-│   │   ├── SKILL.md             #    Agent 调用指南
-│   │   └── references/          #    参考文档
-│   └── xhs-explore/             # 🔍 探索技能（热点发现）
-│
-├── extension/                   # 🌐 Chrome Bridge 扩展（可选）
-│   ├── manifest.json
-│   ├── background.js
-│   └── content.js
-│
-└── assets/                      # 🎨 推广素材
-    ├── cover_agent.png          #    GitHub 封面图
-    └── architecture.png         #    架构图
-```
+A: 支持。每个账号用不同的 Chrome user-data-dir 或不同端口。
 
 ---
 
@@ -345,4 +251,4 @@ xhs-agent/
 
 MIT © 2025 ql-wade
 
-[GitHub](https://github.com/ql-wade/xhs-agent) · [Issues](https://github.com/ql-wade/xhs-agent/issues) · [Discussions](https://github.com/ql-wade/xhs-agent/discussions)
+基于 [xpzouying/xiaohongshu-skills](https://github.com/xpzouying/xiaohongshu-skills) 二次开发。
