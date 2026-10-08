@@ -34,28 +34,7 @@ XHS-Agent 是一套小红书内容创作与管理的 AI 技能包。帮助创作
 
 ## 快速上手
 
-```bash
-# 1. 克隆
-git clone https://github.com/ql-wade/xhs-agent.git
-cd xhs-agent
-
-# 2. 安装依赖
-python3 -m venv .venv && source .venv/bin/activate && pip install -r requirements.txt
-
-# 3. 启动 Chrome（开启远程调试）
-"/Applications/Google Chrome.app/Contents/MacOS/Google Chrome" \
-  --remote-debugging-port=9222 --remote-allow-origins="*" &
-
-# 4. 登录小红书（扫码）
-python3 scripts/cdp_publish.py --host 127.0.0.1 --port 9222 get-login-qrcode
-
-# 5. 发布笔记
-python3 scripts/publish_pipeline.py \
-  --host 127.0.0.1 --port 9222 \
-  --title-file ./title.txt \
-  --content-file ./content.txt \
-  --images ./img1.png ./img2.png
-```
+发布前先阅读 [xhs-publish](skills/xhs-publish/SKILL.md)，按用户指定的云端或本地环境选择工具。当前 CLI 为 Extension Bridge 版；不要使用不存在的旧流水线命令。
 
 详细使用说明请阅读各技能的 SKILL.md。
 

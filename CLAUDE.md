@@ -9,11 +9,14 @@
 
 ## 快速开始
 
+发布前阅读 `skills/xhs-publish/SKILL.md`，按用户指定执行环境选择浏览器；CLI 为 Extension Bridge 版。
+
 ```bash
-pip install -r requirements.txt
-python3 scripts/cdp_publish.py --host 127.0.0.1 --port 9222 check-login
-python3 scripts/publish_pipeline.py --host 127.0.0.1 --port 9222 \
-  --title-file ./title.txt --content-file ./content.txt --images ./img.png
+pip install -e .
+python3 scripts/cli.py check-login
+python3 scripts/cli.py fill-publish --title-file ./title.txt --content-file ./content.txt --images ./img.png
 ```
+
+填写后在当前页核验预览、去重和授权，再提交一次；命令成功不等于平台接受或公开可播放。
 
 详细说明见各技能的 SKILL.md。

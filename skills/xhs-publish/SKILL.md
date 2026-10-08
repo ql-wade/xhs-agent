@@ -1,254 +1,67 @@
 ---
 name: xhs-publish
 description: |
-  小红书内容发布技能。支持图文/视频/长文发布、内容预览、标签管理。
-version: 1.0.0
+  小红书图文、视频和长文发布：准备素材、填写预览、在授权范围内提交、恢复未知结果并核验审核与播放状态。
+metadata:
+  version: "1.1.0"
 ---
 
-# XHS-Publish — 小红书智能发布
+# XHS-Publish — 小红书内容发布
 
-用 AI Agent 辅助你在小红书发布内容。**你负责灵魂，AI 负责效率。**
+优化现有发布流程。先准备与预览；用户已明确授权指定账号的单条内容发布时，Agent 可自行端到端完成，不重复请求同一授权。没有提交授权时停在预览。授权不扩展到其他笔记、账号或未来发布。
 
-## 核心定位
+## 1. 预检与执行环境
 
-```
-┌─────────────────────────────────────────────┐
-│  AI 做的：写文案 · 出配图 · 管素材 · 填表单  │
-│  你做的：审核 · 注入思想 · 点最终发布        │
-└─────────────────────────────────────────────┘
-```
+- 明确目标账号、图文/视频/长文、素材版本、发布数量、可见范围以及授权状态（仅准备 / 已授权单条 / 已消耗 / 结果未知）。记录授权的对话依据，不存凭据。
+- 用户指定助手云端电脑时，使用该环境的浏览器与上传工具；不要默认连接本机 Chrome。先读取当前工具文档和页面状态，确认平台、登录态及目标账号。仅在登录、工具审批等确实需要用户参与时请求接手。
+- 素材必须在执行浏览器可访问的文件环境中。验证文件存在、非空、可解码，视频时长和播放正常，封面正确。不要硬编码机器路径、账号或笔记 ID。
+- 使用工具提供的正常上传能力；不绕过审批、登录或平台限制，不做反检测伪装。Cookie、会话凭据、验证码不得进入仓库、截图报告或日志。
 
-- ✅ **提效工具** — 不是自动发帖机器人
-- ✅ **人机协作** — AI 出初稿，你注入独特视角后发布
-- ✅ **安全合规** — 用你自己的浏览器登录，操作透明可审计
+## 2. 素材就绪
 
----
+上传前固定标题、正文、视频/图片、封面及话题清单，确认文章、字幕、口播和封面中的事实与归因一致。例如真实实现应写“GPT Agent 辅助落地实现”，不能泛化成“AI 写方案”；这是归因核对示例，不是所有内容的固定文案。
 
-## 快速开始（3步）
+标题可用仓库 `scripts/title_utils.py` 的 `calc_title_length` 检查（上限 20），正文建议留余量并以实际编辑页限制为准。话题数量按任务决定；本次 7 个不是平台要求。视频要预备封面，CLI 当前没有封面上传参数，需在实际编辑页设置并核验。
 
-### 第1步：环境准备
+## 3. 上传与故障恢复
 
-```bash
-# 克隆项目
-git clone https://github.com/ql-wade/xhs-agent.git
-cd xhs-agent
+浏览器工具的通用恢复规则及小红书状态证据见 [references/publish-recovery.md](references/publish-recovery.md)，在上传挂起、超时或提交结果不明时读取。
 
-# 安装依赖
-python3 -m venv .venv && source .venv/bin/activate
-pip install -r requirements.txt
+每次选择文件后先观察上传进度、处理提示和实际编辑页。文件选择调用无响应或超时不等于失败；出现审批等待只说明该次调用等待审批，不解释所有此前挂起。仍在进行的调用不得叠加。按恢复表判断，结果未知时不得重复上传或提交。
 
-# 启动 Chrome（开启远程调试）
-# macOS:
-"/Applications/Google Chrome.app/Contents/MacOS/Google Chrome" \
-  --remote-debugging-port=9222 --remote-allow-origins="*" &
-# Linux:
-google-chrome --remote-debugging-port=9222 --remote-allow-origins="*" &
-```
+## 4. 填写、预览与去重
 
-### 第2步：登录小红书
+核验实际编辑页中的视频预览、封面、标题、完整正文、已选话题（普通 `#文本` 不等于已选平台话题）、可见范围及定时设置；不要只相信工具返回值。长文先排版，再检查最终发布页。
 
-```bash
-# 检查是否已登录
-python3 scripts/cdp_publish.py --host 127.0.0.1 --port 9222 check-login
+提交前查创作者内容管理与草稿，结合账号、标题、时间、封面和媒体识别重复笔记；同标题不足以判重。已有匹配笔记审核中或已发布就停止新增。若无法判断是否已提交，保留现场并报告未知状态，不用再次发布来试探。
 
-# 如果未登录，获取二维码扫码
-python3 scripts/cdp_publish.py --host 127.0.0.1 --port 9222 get-login-qrcode
-# → 输出 base64 二维码图片，用手机小红书 App 扫码即可
-```
+## 5. 提交、审核核验与交付
 
-> 💡 **推荐二维码登录**。短信验证码有效期短（~60秒），手动中继容易过期。
+授权未消耗且预览与去重通过时，仅提交一次。保存当前页面与时间证据，及时从成功页提取平台提供的分享入口并验证（不要导航离开后才找链接）。提交调用超时后先只读查状态。
 
-### 第3步：发布内容
+分开报告：点击已尝试 / 平台确认提交 / 审核中 / 平台显示已发布 / 公开详情可访问 / 实际视频可播放。审核中不等于公开成功，编辑器预览可播放也不等于公开视频可播放。打开目标笔记详情，确认内容匹配，并实际启动播放、观察时间推进；记录登录态与验证入口，登录创作者入口可播放不能证明匿名可分享。
+
+保留平台生成链接的必要查询参数。不要去掉 `xsec_token` 后宣称裸链接可用；如完整链接仅在登录态有效或无法取得可验证的分享链接，明确交付限制。会话凭据绝不交付，平台分享参数也不要写入公开验证材料。
+
+交付账号的非敏感标识、内容摘要、各状态与时间证据、去重结果、播放验证范围和已验证链接（或缺失原因）。可使用恢复参考中的记录模板。待审时报告当前状态与后续核验需求，不擅自创建定时任务或承诺持续监控。
+
+## 仓库 CLI 路径（仅适用于已配置的 Extension Bridge）
+
+当前仓库入口是 `scripts/cli.py`，不是 `cdp_publish.py` 或 `publish_pipeline.py`。先按 `extension/` 中说明配置 Bridge；依赖来自 `pyproject.toml`，可在项目虚拟环境执行 `pip install -e .`。云端浏览器若没有 Bridge，使用其已提供的浏览器工具，不强制切换到本机或安装扩展。
 
 ```bash
-# 图文笔记
-python3 scripts/publish_pipeline.py \
-  --host 127.0.0.1 --port 9222 \
-  --title-file ./title.txt \
-  --content-file ./content.txt \
-  --images ./img1.png ./img2.png
-
-# 视频笔记（需要封面图）
-python3 scripts/publish_pipeline.py \
-  --host 127.0.0.1 --port 9222 \
-  --title-file ./title.txt \
-  --content-file ./content.txt \
-  --video ./video.mp4 \
-  --video-cover ./cover.jpg
-```
-
-**推荐先预览再发布：**
-
-```bash
-# 预览模式（只填不发布，在浏览器里确认）
-python3 scripts/publish_pipeline.py \
-  --host 127.0.0.1 --port 9222 --preview \
-  --title-file ./title.txt \
-  --content-file ./content.txt \
-  --images ./img1.png ./img2.png
-
-# 浏览器确认无误后，去掉 --preview 正式发布
-```
-
----
-
-## 内容格式规范
-
-### 标题
-
-| 规则 | 说明 |
-|------|------|
-| 长度限制 | ≤ 20 字符（UTF-16 计算：汉字=1，英文/数字每2个=1） |
-| 计算示例 | `"开源小红书AI提效"` = 9字 ✅；`"Hello World Test"` = 8字 ✅ |
-
-### 正文
-
-| 规则 | 说明 |
-|------|------|
-| 长度限制 | **≤ 1000 字符**（超限后发布按钮无反应，不报错！） |
-| 格式 | 普通文本，段落间空行分隔 |
-| 标签 | 写在正文最后一行：`#标签1 #标签2 #标签3` |
-| 标签说明 | 从正文末尾自动提取，不需要 `--tags` 参数 |
-
-### content.txt 示例
-
-```
-这是正文第一段，介绍你的主题。
-
-这是第二段，可以展开细节。
-
-第三段放总结或行动号召。
-
-#AI工具 #开源 #效率工具 #知识管理
-```
-
-> ⚠️ **检查正文字数**：`wc -m content.txt` 必须 ≤ 1000，建议 ≤ 800 留余量。
-
-### 图片
-
-| 规则 | 说明 |
-|------|------|
-| 格式 | jpg / png / webp |
-| 路径 | 支持绝对路径或 URL（URL 自动下载） |
-| 数量 | 最多 18 张 |
-| 大小 | 单张 ≤ 10MB（建议 ≤ 2MB 上传更快） |
-
-### 视频
-
-| 规则 | 说明 |
-|------|------|
-| 格式 | mp4 / mov / quicktime |
-| 封面图 | **必须**提供 `--video-cover`（可从视频截取） |
-| 截取封面 | `ffmpeg -y -i video.mp4 -ss 00:03 -vframes 1 cover.jpg` |
-
----
-
-## 发布模式
-
-### 模式一：一步发布（快捷）
-
-适合日常低风险内容，信任 AI 输出时直接发布：
-
-```bash
-python3 scripts/publish_pipeline.py \
-  --host 127.0.0.1 --port 9222 \
-  --title-file ./title.txt \
-  --content-file ./content.txt \
-  --images ./img1.png
-```
-
-### 模式二：分步发布（推荐）
-
-适合精品内容，需要审核和修改：
-
-```bash
-# Step 1: 填充表单（不发布）
-python3 scripts/cli.py fill-publish \
-  --title-file ./title.txt \
-  --content-file ./content.txt \
-  --images ./img1.png ./img2.png
-
-# Step 2: 在浏览器中预览确认
-# → 此时可以手动修改标题/正文/调整图片顺序
-
-# Step 3a: 确认无误 → 发布
+python3 scripts/cli.py check-login
+# 视频只填写，不提交；正文不含重复话题，话题显式传入
+python3 scripts/cli.py fill-publish-video \
+  --title-file ./title.txt --content-file ./content.txt \
+  --video ./video.mp4 --tags 话题一 话题二
+# 图文使用 fill-publish --images ./image.png，同样可传 --tags
+# 在当前编辑页完成封面、预览、去重及授权检查后，才执行一次：
 python3 scripts/cli.py click-publish
-
-# Step 3b: 要取消 → 先保存草稿！
-python3 scripts/cli.py save-draft
 ```
 
-> ⚠️ **取消时必须 `save-draft`**，直接关闭会丢失内容。
+不要为发布已预览的表单再运行 `publish-video` 或 `publish`：它们会重新导航、上传并提交。CLI 的 `success` 仅表示命令执行；`submission_unknown` 表示已点击但尚未核验平台接受。CLI 尚无自动审核、去重、分享链接和公开视频播放核验，这些须通过实际页面完成。
 
----
+离线回归案例与本次经验依据见 [references/validation.md](references/validation.md)。不通过再次发帖验证技能。
 
-## 与 AI Agent 配合使用
-
-### Claude Code / Codex / Hermes
-
-Agent 会自动识别「发小红书」「发布到小红书」等意图，触发完整流程：
-
-1. 生成符合规范的标题 + 正文
-2. 调用 Codex/DALL-E 生成配图
-3. 执行 publish_pipeline.py 发布
-4. 向你汇报结果
-
-### Obsidian 工作流
-
-```
-Obsidian 笔记 → AI 增强 → 小红书草稿 → 你审核 → 发布
-```
-
-1. 在 Obsidian 中写好笔记（YAML frontmatter + Markdown 正文）
-2. 用 Agent 将笔记转为小红书格式（标题 ≤20字，正文 ≤1000字）
-3. 自动生成配图
-4. 预览确认 → 发布
-5. 发布后的链接和数据回写到 Obsidian
-
----
-
-## 常见问题
-
-### Q: 登录过期了怎么办？
-
-A: 重新执行 `get-login-qrcode` 扫码即可。登录状态缓存 12 小时。
-
-### Q: 发布按钮点了没反应？
-
-A: 最常见原因是**正文超过 1000 字**。检查方法：
-```bash
-wc -m content.txt   # 必须 ≤ 1000
-```
-压缩正文到 800 字以内再试。
-
-### Q: 图片上传失败？
-
-A: 检查文件路径是否正确（必须绝对路径）、格式是否支持、大小是否超 10MB。
-
-### Q: 标签没有生效？
-
-A: 不需要 `--tags` 参数。把标签写在正文最后一行，脚本自动从末尾提取。
-
-### Q: 支持多账号吗？
-
-A: 支持。每个账号用不同的 Chrome user-data-dir 或不同端口。
-
----
-
-## 安全与合规
-
-| 原则 | 说明 |
-|------|------|
-| 本地优先 | 所有数据存储在你本地，Token 不经过第三方服务器 |
-| 操作透明 | 通过 CDP 操控你自己的浏览器，每一步可见 |
-| 人工决策 | 推荐审核模式 —— AI 准备，你做最终决定 |
-| 平台遵守 | 不刷量、不绕过风控、不批量恶意操作 |
-| 开源审计 | 全部代码可审查，无后门 |
-
----
-
-## License
-
-MIT © 2025 ql-wade
-
-基于 [xpzouying/xiaohongshu-skills](https://github.com/xpzouying/xiaohongshu-skills) 二次开发。
+用户要求不发布的体验测试时，按 [references/preview-only-test.md](references/preview-only-test.md) 执行并停在预览；该测试不替代发布后的核验。
