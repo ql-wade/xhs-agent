@@ -56,9 +56,8 @@ XHS-Agent：描述需求(2min) → AI生成(30s) → 人工审核(3min) → 确�
 ### 前置要求
 
 - **AI Agent 平台**：Claude Code / Codex / Hermes / OpenCode（任选其一）
-- **浏览器**：Chrome（用于 CDP 协议操控）
-- **Node.js** ≥ 18
-- **Python** ≥ 3.10
+- **浏览器**：按用户指定环境选择；仓库 CLI 需要 Chrome Extension Bridge
+- **Python** ≥ 3.11
 
 ### 安装
 
@@ -68,27 +67,25 @@ git clone https://github.com/ql-wade/xhs-agent.git
 cd xhs-agent
 
 # 安装依赖
-npm install
-pip install -r requirements.txt
+python3 -m venv .venv
+source .venv/bin/activate
+pip install -e .
 ```
 
-### 5 分钟上手
+### 发布入口
+
+先读 [xhs-publish 技能](skills/xhs-publish/SKILL.md)，完成环境、素材和授权预检。CLI 通过 `scripts/cli.py` 连接已配置的 Extension Bridge；云端环境使用其可用浏览器工具。
 
 ```bash
-# 1. 用自然语言生成文案
-echo "帮我写一篇关于AI提效的小红书笔记" | agent-run xhs-draft
-
-# 2. AI 自动生成配图
-agent-run xhs-image --topic "AI提效工具" --style "暗紫科技风"
-
-# 3. 推送到 Obsidian 笔记库
-agent-run xhs-to-obsidian --note ./draft.md --vault ~/my-vault
-
-# 4. 你在 Obsidian 里审核修改后，一键辅助发布
-agent-run xhs-publish --note ./final.md --confirm
+python3 scripts/cli.py check-login
+python3 scripts/cli.py fill-publish-video \
+  --title-file ./title.txt --content-file ./content.txt --video ./video.mp4 \
+  --tags 话题一 话题二
 ```
 
-> 💡 **所有发布操作均需人工确认**。Agent 只负责填表和准备，你点最终发布。
+完成实际编辑页的封面、内容预览和去重，在指定单条发布授权内提交一次，随后分别核验提交、审核、详情访问和播放。不要为已填好的表单重跑上传流程。
+
+本页下方的 `agent-run` 与内容管理模块展示的是工作流设想；当前 checkout 没有这些可执行入口。以现有技能和 `scripts/cli.py --help` 为准。
 
 ---
 
@@ -342,7 +339,7 @@ xhs-agent/
 - 不进行批量恶意操作
 - 不发布违规内容
 - 自行承担账号使用风险
-- **发布行为始终由人工确认和执行**
+- **发布须有相应授权；提交、审核和公开视频播放分别核验**
 
 ---
 

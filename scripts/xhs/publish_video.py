@@ -86,7 +86,7 @@ def click_publish_video_button(page: Page) -> None:
     _wait_for_publish_button_clickable(page)
     page.click_element(PUBLISH_BUTTON)
     time.sleep(3)
-    logger.info("视频发布完成")
+    logger.info("已点击视频发布，平台提交结果待核验")
 
 
 def _upload_video(page: Page, video_path: str) -> None:

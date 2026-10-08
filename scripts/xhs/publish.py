@@ -136,7 +136,7 @@ def click_publish_button(page: Page) -> None:
     if not clicked:
         raise PublishError("未找到发布按钮")
     time.sleep(3)
-    logger.info("发布完成")
+    logger.info("已点击发布，平台提交结果待核验")
 
 
 def save_as_draft(page: Page) -> None:

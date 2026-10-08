@@ -526,7 +526,12 @@ def cmd_publish(args: argparse.Namespace) -> None:
                 visibility=args.visibility or "",
             ),
         )
-        _output({"success": True, "title": title, "images": len(image_paths), "status": "发布完成"})
+        _output({
+            "success": True,
+            "title": title, "images": len(image_paths),
+            "status": "已点击发布，平台提交结果待核验",
+            "submission_state": "submission_unknown",
+        })
     finally:
         browser.close()
 
@@ -600,7 +605,11 @@ def cmd_click_publish(args: argparse.Namespace) -> None:
     browser, page = _connect_existing(args)
     try:
         click_publish_button(page)
-        _output({"success": True, "status": "发布完成"})
+        _output({
+            "success": True,
+            "status": "已点击发布，平台提交结果待核验",
+            "submission_state": "submission_unknown",
+        })
     finally:
         browser.close()
 
@@ -692,7 +701,12 @@ def cmd_publish_video(args: argparse.Namespace) -> None:
                 visibility=args.visibility or "",
             ),
         )
-        _output({"success": True, "title": title, "video": args.video, "status": "发布完成"})
+        _output({
+            "success": True,
+            "title": title, "video": args.video,
+            "status": "已点击发布，平台提交结果待核验",
+            "submission_state": "submission_unknown",
+        })
     finally:
         browser.close()
 
